@@ -1,7 +1,7 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../')))
+#sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../')))
 sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../../pychain/src')))
 
 
@@ -17,7 +17,7 @@ from midi_conversion import *
 
 
 # Read file
-path = '../midi_datasets/mz_311_1_format0.mid'
+path = 'midi_datasets/mz_311_1_format0.mid'
 midi = MidiFile(path)
 matrix_midi = midiToMatrix(midi)
 
@@ -112,7 +112,7 @@ def create_layer():
 
 
 def save_layer(layer, i_batch):
-    path = '../models/models_mz311_midi/' + str(datetime.now().strftime("%d-%m-%Y %Hh%Mmin%Ss")) + '_b-' +  str(i_batch) + '.pickle'
+    path = 'models/models_mz311_midi/' + str(datetime.now().strftime("%d-%m-%Y %Hh%Mmin%Ss")) + '_b-' +  str(i_batch) + '.pickle'
     pickle.dump(layer, open(path, 'wb'))
 
 if __name__ == '__main__':
