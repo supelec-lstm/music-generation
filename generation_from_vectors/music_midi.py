@@ -1,7 +1,9 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../src')))
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../')))
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../../pychain/src')))
+
 
 import pickle
 import time
@@ -15,7 +17,7 @@ from midi_conversion import *
 
 
 # Read file
-path = 'music/mz_311_1_format0.mid'
+path = '../midi_datasets/mz_311_1_format0.mid'
 midi = MidiFile(path)
 matrix_midi = midiToMatrix(midi)
 
@@ -97,25 +99,20 @@ def create_layer():
     w = LearnableNode(0.1 * np.random.randn(dim_s, matrix_midi.shape[0]))
     mult = MultiplicationNode([parent, w])
     out = SigmoidNode([mult])
-    #out = ReluNodeWithSaturation([mult])
     #out = TanhNode([mult])
-    #out = AbsoluteWithSaturationNode([mult])
-    #out = mult
+
     # Cost
     y = InputNode()
     cost = SigmoidCrossEntropyNode([y, out])
-    #e = SubstractionNode([y, mult])
     #e = SubstractionNode([y, out])
     #cost = Norm2Node([e])
 
     nodes = hidden_inputs + hidden_outputs + lstms + [x, w, mult, out, y, cost]
-    #nodes = hidden_inputs + hidden_outputs + lstms + [x, w, mult, out, y, cost]
-    #nodes = hidden_inputs + hidden_outputs + lstms + [x, w, mult, y, e, cost]
     return Layer(nodes, [x], [out], hidden_inputs, hidden_outputs, [y], cost, [w] + lstms)
-    #return Layer(nodes, [x], [mult], hidden_inputs, hidden_outputs, [y], cost, [w] + lstms)
+
 
 def save_layer(layer, i_batch):
-    path = 'models_mz1_midi/' + str(datetime.now().strftime("%d-%m-%Y %Hh%Mmin%Ss")) + '_b-' +  str(i_batch) + '.pickle'
+    path = '../models/models_mz311_midi/' + str(datetime.now().strftime("%d-%m-%Y %Hh%Mmin%Ss")) + '_b-' +  str(i_batch) + '.pickle'
     pickle.dump(layer, open(path, 'wb'))
 
 if __name__ == '__main__':

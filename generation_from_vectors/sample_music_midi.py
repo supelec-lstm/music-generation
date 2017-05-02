@@ -1,7 +1,9 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../src')))
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../')))
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../../pychain/src')))
+
 import pickle
 import matplotlib.pyplot as plt
 from lstm_node import *
@@ -10,8 +12,10 @@ from recurrent_graph import *
 from midi_conversion import *
 
 
+
 # Read file
-path = 'music/mz_311_1_format0.mid'
+path = '../midi_datasets/mz_311_1_format0.mid'
+print(sys.path)
 midi = MidiFile(path)
 matrix_midi = midiToMatrix(midi)
 
@@ -85,7 +89,7 @@ def sample(graph):
 
 
 if __name__ == '__main__':
-    layer = pickle.load(open('models_mz1_midi/30-04-2017 17h15min44s_b-200.pickle', 'rb'))
+    layer = pickle.load(open('../models/models_mz311_midi/30-04-2017 17h15min44s_b-200.pickle', 'rb'))
     graph = RecurrentGraph(layer, len_seq - 1, hidden_shapes)
     track = sample(graph)
     midi_generated = MidiFile()

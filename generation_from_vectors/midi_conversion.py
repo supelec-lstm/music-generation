@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '../../')))
+
 from mido import MidiFile, MidiTrack, Message, MetaMessage
 import numpy as np
 from matplotlib import pyplot as plt
@@ -104,7 +109,7 @@ def visualize(matrix):
 
 
 if __name__ == '__main__':
-    midi_file = MidiFile('music/mz_311_1_format0.mid')
+    midi_file = MidiFile('../midi_datasets/mz_311_1_format0.mid')
     matrix = midiToMatrix(midi_file)
     outfile = MidiFile()
     track0 = MidiTrack() #We manually add the tempo and the global structure which are not learnt by the network for the moment
