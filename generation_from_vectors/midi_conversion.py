@@ -2,7 +2,7 @@ from mido import MidiFile, MidiTrack, Message, MetaMessage
 import numpy as np
 from matplotlib import pyplot as plt
 
-#oversampling
+#subsampling
 n=50
 
 def midiToMatrix(midi_file):

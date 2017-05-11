@@ -44,7 +44,7 @@ def identity(output):
     #print(np.max(output))
     for i in range(matrix_midi.shape[0]):
 
-        if output[0,i] > 0.35:
+        if output[0,i] > 0.2:
             print('/////////////////////////')
             print(output[0,i])
             #vector[0,i] = min(output[0,i],1)
@@ -123,7 +123,7 @@ def sample(graph):
 
 
 if __name__ == '__main__':
-    layer = pickle.load(open('models/models_toutes_jigs_midi/11-05-2017 20h30min18s_b-3600.pickle', 'rb'))
+    layer = pickle.load(open('models/models_toutes_jigs_midi/11-05-2017 21h08min09s_b-4000.pickle', 'rb'))
     graph = RecurrentGraph(layer, len_seq - 1, hidden_shapes)
     track = sample(graph)
     midi_generated = MidiFile()
@@ -136,6 +136,6 @@ if __name__ == '__main__':
     track0.append(MetaMessage('end_of_track', time=0))
     midi_generated.tracks.append(track0)
     midi_generated.tracks.append(track)
-    midi_generated.save('generations/midi_generated_jig_1_20.mid')
+    midi_generated.save('generations/midi_generated_jig_1_21.mid')
     for msg in track:
         print(msg)
