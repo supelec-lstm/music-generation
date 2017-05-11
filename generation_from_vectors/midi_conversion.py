@@ -2,6 +2,8 @@ from mido import MidiFile, MidiTrack, Message, MetaMessage
 import numpy as np
 from matplotlib import pyplot as plt
 
+#oversampling
+n=50
 
 def midiToMatrix(midi_file):
     '''
@@ -9,6 +11,8 @@ def midiToMatrix(midi_file):
     Each column/vector has a length of 128 (128 different notes). It contains the velocity (between 0 and 127) of each note at a tick t.
     The second dimension represents the time in the midi file which is decomposed into ticks.
     '''
+    print('nb tracks =',len(midi_file.tracks))
+    matrix_list = []
     for track in midi_file.tracks:
         total_ticks = 0
         musical_events = []
@@ -25,26 +29,48 @@ def midiToMatrix(midi_file):
             if event.time!=0:
                 for i in range(event.time):
                     #if current_vector.any():  #in order to consider only tick with at least one note. (no silence considered)
-                    matrix[:,position] = current_vector
+                    #matrix[:, position] = current_vector
+
+                    if position%n==0:
+                        matrix[:,int(position/n)] = current_vector
+
                     position += 1
             if event.type == 'note_on':
                 #current_vector[event.note] = event.velocity*2/127 - 1 #for tanh
-                current_vector[event.note] = event.velocity / 127  #for sigmoid
+                #current_vector[event.note] = event.velocity / 127  #for sigmoid
+                if event.velocity==0:
+                    current_vector[event.note] = 0
+                else:
+                    current_vector[event.note] = event.velocity/127#1
             elif event.type == 'note_off':
                 current_vector[event.note] = 0 #0 for sigmoid, -1 for tanh
         j=0
         while position < total_ticks: #complete the matrix until the end of the file
             j+=1
-            matrix[:,position] = current_vector
+            #matrix[:, position] = current_vector
+
+            if position % n == 0:
+                matrix[:,int(position/n)] = current_vector
+
             position += 1
-        '''
+
         #to delete the end of the matrix if there is no note
         i=-1
-        print(matrix.shape)
         while -i<matrix.shape[1] and matrix[:,i].any()==False:
             i -= 1
         matrix = matrix[:,:i+1]
-        '''
+        matrix_list.append(matrix)
+
+    #we sum all the tracks in a single matrix
+    lengths = []
+    for m in matrix_list:
+        lengths.append(m.shape[1])
+    s = np.max(lengths)
+    for i in range(len(matrix_list)):
+        if matrix_list[i].shape[1] < s:
+            matrix_list[i] = np.concatenate((matrix_list[i], np.zeros([128,s-matrix_list[i].shape[1]])), axis=1)
+    matrix = sum(matrix_list)
+
     return matrix
 
 
@@ -54,6 +80,7 @@ def matrixToMidi(matrix):
     We get the velocity of each note at each time from the matrix
     The velocity is chosen with a step of 10 in order to delete the low variations
     '''
+
     visualize(matrix)  #display the matrix/track
     track = MidiTrack()
     track.append(MetaMessage('track_name', name='Sampler 1', time=0))
@@ -76,9 +103,9 @@ def matrixToMidi(matrix):
                 vector[i] = vector[i]//10 *10
                 if vector[i] != previous_vector[i]:
                     if previous_vector[i]!=0 and vector[i]==0:
-                        track.append(Message('note_off', note=i,velocity=0, time=delay))
+                        track.append(Message('note_off', note=i,velocity=0, time=delay*n))
                     else:
-                        track.append(Message('note_on', note=i, velocity=min(int(vector[i]),127),time=delay))
+                        track.append(Message('note_on', note=i, velocity=min(int(vector[i]),127),time=delay*n))
                     delay = 0
             delay += 1
             previous_vector = vector
@@ -104,18 +131,20 @@ def visualize(matrix):
 
 
 if __name__ == '__main__':
-    midi_file = MidiFile('midi_datasets/mz_311_1_format0.mid')
+    midi_file = MidiFile('midi_datasets/jigs/jigs28.mid')
     matrix = midiToMatrix(midi_file)
     outfile = MidiFile()
     track0 = MidiTrack() #We manually add the tempo and the global structure which are not learnt by the network for the moment
     track0.append(MetaMessage('track_name', name='Tempo', time=0))
-    track0.append(MetaMessage('time_signature',numerator=4,denominator=4,clocks_per_click=24,notated_32nd_notes_per_beat=8,time=0))
-    track0.append(MetaMessage('key_signature',key='C',time=0))
-    track0.append(MetaMessage('set_tempo', tempo=int(600000*4.5), time=0))
+    #track0.append(MetaMessage('time_signature',numerator=4,denominator=4,clocks_per_click=24,notated_32nd_notes_per_beat=8,time=0))
+    track0.append(MetaMessage('time_signature', numerator=6, denominator=8, clocks_per_click=36, notated_32nd_notes_per_beat=8,time=0))
+    track0.append(MetaMessage('key_signature',key='D',time=0))
+    #track0.append(MetaMessage('set_tempo', tempo=int(600000*4.5), time=0))
+    track0.append(MetaMessage('set_tempo', tempo=int(423042), time=0))
     track0.append(MetaMessage('end_of_track', time=0))
     track = matrixToMidi(matrix)
     outfile.tracks.append(track0)
     outfile.tracks.append(track)
-    outfile.save('test_mz1.mid')
+    #outfile.save('test_jig1.mid')
     for msg in track:
         print(msg)
